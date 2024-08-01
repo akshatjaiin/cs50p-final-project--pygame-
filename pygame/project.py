@@ -135,7 +135,9 @@ def load_Sound():
 #load sprites
 def load_image():
     print("image loaded")
-    background = pygame.image.load("image/game_background.jfif")
+    background = pygame.image.load("image/sample_map.jpg")
+    original_width = background.get_width()
+    background = pygame.transform.scale(background, (original_width, SCREEN_HEIGHT))
     jet = pygame.image.load("image/jet.png").convert()
     missile = pygame.image.load("image/missile.png").convert()
     cloud = pygame.image.load("image/cloud.png").convert()
@@ -187,11 +189,17 @@ def update_sprites(player, enemies, clouds, coins, sounds):
     coins.update()
 
 def draw_background(screen, sprite, x, bg_speed):
-    print("moving background")
+    # Determine the width of the background image
+    bg_width = sprite["background"].get_width()
+    
+    # Draw the background
+    # Draw the visible part of the background
     screen.blit(sprite["background"], (x, 0))
-    screen.blit(sprite["background"], (SCREEN_WIDTH + x, 0))
+    screen.blit(sprite["background"], (bg_width+x, 0))
+
+    # # Update the position for scrolling
     x -= bg_speed
-    if x <= -SCREEN_WIDTH:
+    if (bg_width+x<0):
         x = 0
     return x
 
@@ -236,7 +244,7 @@ def game_loop(player, enemies, clouds, coins, all_sprites, sprite, sounds, scree
     pygame.font.init()
     running = True
     x = 0
-    bg_speed = 5
+    bg_speed = 4
 
     while running:
         print("loop started")
