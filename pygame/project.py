@@ -186,7 +186,7 @@ while running:
                 running = False
             elif event.key == K_RIGHT:
                 x -= 1
-
+                
         # Did the user click the window close button? If so, stop the loop
         elif event.type == QUIT:
             running = False
@@ -219,6 +219,11 @@ while running:
     # screen.fill((135, 206, 250))
     
     screen.blit(sprite["background"], (x, 0))
+    screen.blit(sprite["background"], (SCREEN_WIDTH+x, 0))
+    if (x==-SCREEN_WIDTH):
+        x = 0
+
+
     
 
     # Draw all our sprites
