@@ -4,12 +4,12 @@ import pygame
 
 pygame.mixer.init()
 pygame.init()
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
 # Define constants for screen width, height, and custom events
 ADDENEMY = pygame.USEREVENT + 1
 ADDCLOUD = pygame.USEREVENT + 2
 ADDCOIN = pygame.USEREVENT + 3
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Player Class
@@ -138,6 +138,8 @@ def load_image():
     background = pygame.image.load("image/sample_map.jpg")
     original_width = background.get_width()
     background = pygame.transform.scale(background, (original_width, SCREEN_HEIGHT))
+    opening = pygame.image.load("image/opening.jpeg")
+    opening = pygame.transform.scale(opening, (SCREEN_WIDTH, SCREEN_HEIGHT))
     jet = pygame.image.load("image/jet.png").convert()
     missile = pygame.image.load("image/missile.png").convert()
     cloud = pygame.image.load("image/cloud.png").convert()
@@ -150,6 +152,7 @@ def load_image():
         "background": background,
         "coin": coin,
         "heart": heart,
+        "opening": opening,
     }
 
 # game events
@@ -276,13 +279,21 @@ from pygame.locals import (
     RLEACCEL,
 )
 
-
-
 def main():
 
     sprite = load_image()
     sounds = load_Sound()
-        
+
+    running = True
+    while running:
+        screen.blit(sprite["opening"], (0, 0)) 
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                print("key pressed")
+                running = False
+                break
+        pygame.display.flip()
+
     # Access sounds from the dictionary and set the base volume for all
     sounds["move_up"].set_volume(0.5)
     sounds["move_down"].set_volume(0.5)
@@ -313,4 +324,5 @@ def main():
     # Quit Pygame
     pygame.quit()
 
-main()
+if __name__ == "__main__":
+    main()
