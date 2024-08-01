@@ -1,8 +1,8 @@
 # Import the pygame module
 # Import random for random numbers
 import random
-
 import pygame
+bg_image = pygame.image.load("image/game_background.jfif")
 
 # Import pygame.locals for easier access to key coordinates
 # Updated to conform to flake8 and black standards
@@ -28,7 +28,7 @@ SCREEN_HEIGHT = 600
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.image.load("jet.png").convert()
+        self.surf = pygame.image.load("image/jet.png").convert()
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.surf.get_rect()
 
@@ -61,7 +61,7 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
-        self.surf = pygame.image.load("missile.png").convert()
+        self.surf = pygame.image.load("image/missile.png").convert()
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         # The starting position is randomly generated, as is the speed
         self.rect = self.surf.get_rect(
@@ -85,7 +85,7 @@ class Enemy(pygame.sprite.Sprite):
 class Cloud(pygame.sprite.Sprite):
     def __init__(self):
         super(Cloud, self).__init__()
-        self.surf = pygame.image.load("cloud.png").convert()
+        self.surf = pygame.image.load("image/cloud.png").convert()
         self.surf.set_colorkey((0, 0, 0), RLEACCEL)
         # The starting position is randomly generated
         self.rect = self.surf.get_rect(
@@ -99,7 +99,7 @@ class Cloud(pygame.sprite.Sprite):
     # Remove it when it passes the left edge of the screen
     def update(self):
         self.rect.move_ip(-5, 0)
-        if self.rect.right < 0:
+        if self.rect.right < -8:
             self.kill()
 
 
@@ -137,14 +137,14 @@ all_sprites.add(player)
 # Load and play our background music
 # Sound source: http://ccmixter.org/files/Apoxode/59262
 # License: https://creativecommons.org/licenses/by/3.0/
-pygame.mixer.music.load("Apoxode_-_Electric_1.mp3")
+pygame.mixer.music.load("melody/Apoxode_-_Electric_1.mp3")
 pygame.mixer.music.play(loops=-1)
 
 # Load all our sound files
 # Sound sources: Jon Fincher
-move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
-move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
-collision_sound = pygame.mixer.Sound("Collision.ogg")
+move_up_sound = pygame.mixer.Sound("melody/Rising_putter.ogg")
+move_down_sound = pygame.mixer.Sound("melody/Falling_putter.ogg")
+collision_sound = pygame.mixer.Sound("melody/Collision.ogg")
 
 # Set the base volume for all sounds
 move_up_sound.set_volume(0.5)
@@ -177,6 +177,7 @@ while running:
 
         # Should we add a new cloud?
         elif event.type == ADDCLOUD:
+            
             # Create the new cloud, and add it to our sprite groups
             new_cloud = Cloud()
             clouds.add(new_cloud)
