@@ -33,11 +33,13 @@ def load_image():
     jet = pygame.image.load("image/jet.png").convert()
     missile = pygame.image.load("image/missile.png").convert()
     cloud = pygame.image.load("image/cloud.png").convert()
+    coin = pygame.image.load("image/coin.png").convert()
     return {
         "jet": jet,
         "missile": missile,
         "cloud": cloud,
-        "background":background
+        "background": background,
+        "coin": coin,
     }
 
 # game events
@@ -60,10 +62,14 @@ def game_events(player, enemies, clouds, all_sprites, sprite, sounds):
             new_cloud = Cloud()
             clouds.add(new_cloud)
             all_sprites.add(new_cloud)
+        elif event.type == ADDCOIN:
+            new_coin = Coin()
+            coins.add(new_coin)
+            all_sprites.add(new_coin)
 
     return running
 
-
+coin_count = 0
 # Define constants for the screen width and height
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -141,9 +147,30 @@ class Enemy(pygame.sprite.Sprite):
     # Remove it when it passes the left edge of the screen
     def update(self):
         self.rect.move_ip(-self.speed, 0)
-        if self.rect.right < 0:
+        if self.rect.right < -5:
             self.kill()
 
+# Instead of a surface, we use an image for a better looking sprite
+class Coin(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Coin, self).__init__()
+        self.surf = sprite["coin"]
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
+        # The starting position is randomly generated, as is the speed
+        self.rect = self.surf.get_rect(
+            center=(
+                random.randint(SCREEN_WIDTH + 20, SCREEN_WIDTH + 100),
+                random.randint(0, SCREEN_HEIGHT),
+            )
+        )
+        self.speed = random.randint(5, 10)
+
+    # Move the enemy based on speed
+    # Remove it when it passes the left edge of the screen
+    def update(self):
+        self.rect.move_ip(-self.speed, 0)
+        if self.rect.right < -5:
+            self.kill()
 
 # Use an image for a better looking sprite
 class Cloud(pygame.sprite.Sprite):
@@ -178,6 +205,8 @@ ADDENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDENEMY, 250)
 ADDCLOUD = pygame.USEREVENT + 2
 pygame.time.set_timer(ADDCLOUD, 1000)
+ADDCOIN = pygame.USEREVENT + 3
+pygame.time.set_timer(ADDCLOUD, 600)
 
 # Create our 'player'
 player = Player()
@@ -188,14 +217,22 @@ player = Player()
 # - all_sprites isused for rendering
 enemies = pygame.sprite.Group()
 clouds = pygame.sprite.Group()
+coins = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
+pygame.font.init()  # Initialize the font module
+font = pygame.font.SysFont('Arial', 36)
+text_surface = font.render(f'Score: {coin_count}', True, (255, 255, 255))  # White text
+
+# Get the rectangle of the text surface
+text_rect = text_surface.get_rect(topright=(SCREEN_WIDTH-10, 10))
 # Variable to keep our main loop running
 running = True
 x = 0
 bg_speed = 5
 # Our main loop
+
 while running:
     # Look at every event in the queue check if user presses quit or esc
     running = game_events(player, enemies, clouds, all_sprites, sprite, sounds)
@@ -207,10 +244,11 @@ while running:
     # Update the position of our enemies and clouds
     enemies.update()
     clouds.update()
-
+    coins.update()
     # Background movement
     screen.blit(sprite["background"], (x, 0))
     screen.blit(sprite["background"], (SCREEN_WIDTH + x, 0))
+    screen.blit(text_surface, text_rect)
     
     # Move the background to the left
     x -= bg_speed
@@ -229,10 +267,12 @@ while running:
         # Stop any moving sounds and play the collision sound
         sounds["move_up"].stop()
         sounds["move_down"].stop()
-        sounds["collision"].play()
-
+        sounds["collision"].play()    
         # Stop the loop
         running = False
+        
+    if pygame.sprite.spritecollideany(player, coins):
+        coin_count+=1
 
     # Updare everything to the display
     pygame.display.update()
