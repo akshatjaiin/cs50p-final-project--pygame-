@@ -43,7 +43,7 @@ def load_image():
     }
 
 # game events
-def game_events(player, enemies, clouds, all_sprites, sprite, sounds):
+def game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins):
     running = True
     for event in pygame.event.get():
         if event.type == KEYDOWN:
@@ -62,6 +62,7 @@ def game_events(player, enemies, clouds, all_sprites, sprite, sounds):
             new_cloud = Cloud()
             clouds.add(new_cloud)
             all_sprites.add(new_cloud)
+            
         elif event.type == ADDCOIN:
             new_coin = Coin()
             coins.add(new_coin)
@@ -69,7 +70,7 @@ def game_events(player, enemies, clouds, all_sprites, sprite, sounds):
 
     return running
 
-coin_count = 0
+coin_count = 0 #coins
 # Define constants for the screen width and height
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -97,7 +98,7 @@ from pygame.locals import (
     RLEACCEL,
 )
 
-# Define the Player object extending pygame.sprite.Sprite
+# Player Class
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
@@ -128,7 +129,7 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
 
-# Instead of a surface, we use an image for a better looking sprite
+# Enemy Class
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
@@ -150,7 +151,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.right < -5:
             self.kill()
 
-# Instead of a surface, we use an image for a better looking sprite
+# Coin Class
 class Coin(pygame.sprite.Sprite):
     def __init__(self):
         super(Coin, self).__init__()
@@ -172,7 +173,7 @@ class Coin(pygame.sprite.Sprite):
         if self.rect.right < -5:
             self.kill()
 
-# Use an image for a better looking sprite
+# Cloud Class
 class Cloud(pygame.sprite.Sprite):
     def __init__(self):
         super(Cloud, self).__init__()
@@ -206,7 +207,7 @@ pygame.time.set_timer(ADDENEMY, 250)
 ADDCLOUD = pygame.USEREVENT + 2
 pygame.time.set_timer(ADDCLOUD, 1000)
 ADDCOIN = pygame.USEREVENT + 3
-pygame.time.set_timer(ADDCLOUD, 600)
+pygame.time.set_timer(ADDCOIN, 600)
 
 # Create our 'player'
 player = Player()
@@ -219,23 +220,19 @@ enemies = pygame.sprite.Group()
 clouds = pygame.sprite.Group()
 coins = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
-all_sprites.add(player)
+all_sprites.add(player, coins)
 
 pygame.font.init()  # Initialize the font module
 font = pygame.font.SysFont('Arial', 36)
-text_surface = font.render(f'Score: {coin_count}', True, (255, 255, 255))  # White text
-
-# Get the rectangle of the text surface
-text_rect = text_surface.get_rect(topright=(SCREEN_WIDTH-10, 10))
 # Variable to keep our main loop running
 running = True
 x = 0
 bg_speed = 5
 # Our main loop
-
+heart = 3
 while running:
     # Look at every event in the queue check if user presses quit or esc
-    running = game_events(player, enemies, clouds, all_sprites, sprite, sounds)
+    running = game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins)
     
     # Get the set of keys pressed and check for user input
     pressed_keys = pygame.key.get_pressed()
@@ -245,6 +242,11 @@ while running:
     enemies.update()
     clouds.update()
     coins.update()
+    
+    text_surface = font.render(f'Score: {coin_count}', True, (255, 255, 255))  # White text
+
+    # Get the rectangle of the text surface
+    text_rect = text_surface.get_rect(topright=(SCREEN_WIDTH-10, 10))
     # Background movement
     screen.blit(sprite["background"], (x, 0))
     screen.blit(sprite["background"], (SCREEN_WIDTH + x, 0))
@@ -263,6 +265,7 @@ while running:
     if pygame.sprite.spritecollideany(player, enemies):
         # If so, remove the player
         player.kill()
+        heart-=1
 
         # Stop any moving sounds and play the collision sound
         sounds["move_up"].stop()
@@ -271,9 +274,12 @@ while running:
         # Stop the loop
         running = False
         
-    if pygame.sprite.spritecollideany(player, coins):
+    if coin := pygame.sprite.spritecollideany(player, coins):
+        coin.kill()
         coin_count+=1
 
+    if heart == 0:
+        return False
     # Updare everything to the display
     pygame.display.update()
     # Ensure we maintain a 30 frames per second rate
