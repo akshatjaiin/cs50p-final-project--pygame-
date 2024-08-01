@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.surf.get_rect()
 
-    # Move the sprite based on keypresses
+    # Move the sprite based on keypress
     def update(self, pressed_keys, sounds):
         if pressed_keys[K_UP]:
             self.rect.move_ip(0, -5)
@@ -114,7 +114,6 @@ def load_Sound():
     # Load and play our background music
     # Sound source: http://ccmixter.org/files/Apoxode/59262
     # License: https://creativecommons.org/licenses/by/3.0/
-    print("sound loaded")
     pygame.mixer.music.load("melody/Apoxode_-_Electric_1.mp3")
     pygame.mixer.music.play(loops=-1)
 
@@ -134,7 +133,6 @@ def load_Sound():
 
 #load sprites
 def load_image():
-    print("image loaded")
     background = pygame.image.load("image/sample_map.jpg")
     original_width = background.get_width()
     background = pygame.transform.scale(background, (original_width, SCREEN_HEIGHT))
@@ -157,7 +155,6 @@ def load_image():
 
 # game events
 def game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins):
-    print("event triggered")
     running = True
     for event in pygame.event.get():
         if event.type == KEYDOWN:
@@ -185,7 +182,6 @@ def game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins):
     return running
 
 def update_sprites(player, enemies, clouds, coins, sounds):
-    print("update.x")
     player.update(pygame.key.get_pressed(), sounds)
     enemies.update()
     clouds.update()
@@ -207,7 +203,6 @@ def draw_background(screen, sprite, x, bg_speed):
     return x
 
 def draw_sprites(screen, all_sprites):
-    print("drawing sprite")
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
 
@@ -224,7 +219,6 @@ def check_collisions(player, enemies, coins, sounds, hearts):
     return 0, hearts
 
 def update_score_display(screen, coin_count, hearts, sprite):
-    print(f"score {hearts}")
     font = pygame.font.SysFont('Arial', 36)
     text_surface = font.render(f'Score: {coin_count}', True, (255, 255, 255))  # White text
     text_rect = text_surface.get_rect(topright=(SCREEN_WIDTH - 10, 10))
@@ -233,24 +227,22 @@ def update_score_display(screen, coin_count, hearts, sprite):
         screen.blit(sprite["heart"], (i * 40, 3))
 
 def end_game(player, sounds):
-    print("game over")
     player.kill()
+    print("game over")
     sounds["move_up"].stop()
     sounds["move_down"].stop()
     sounds["collision"].play()
 
 def game_loop(player, enemies, clouds, coins, all_sprites, sprite, sounds, screen, clock):
-    print("game loop")
 
     coin_count = 0
     hearts = 3
     pygame.font.init()
     running = True
     x = 0
-    bg_speed = 4
+    bg_speed = 2
 
     while running:
-        print("loop started")
         running = game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins)
         update_sprites(player, enemies, clouds, coins, sounds)
         x = draw_background(screen, sprite, x, bg_speed)
@@ -289,7 +281,6 @@ def main():
         screen.blit(sprite["opening"], (0, 0)) 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                print("key pressed")
                 running = False
                 break
         pygame.display.flip()
@@ -302,6 +293,8 @@ def main():
 
     # Create player and sprite groups
     player = Player(sprite)
+    player.rect.x = 50  # Set the X coordinate
+    player.rect.y = 50
     enemies = pygame.sprite.Group()
     clouds = pygame.sprite.Group()
     coins = pygame.sprite.Group()
