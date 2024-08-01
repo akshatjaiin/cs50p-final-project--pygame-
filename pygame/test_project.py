@@ -1,28 +1,5 @@
+from project import load_Sound, load_image, game_events
 import pygame
-
-# Assume these functions are defined elsewhere and imported here
-def load_Sound():
-    move_up_sound = pygame.mixer.Sound("melody/Rising_putter.ogg")
-    move_down_sound = pygame.mixer.Sound("melody/Falling_putter.ogg")
-    collision_sound = pygame.mixer.Sound("melody/Collision.ogg")
-    
-    return {
-        "move_up": move_up_sound,
-        "move_down": move_down_sound,
-        "collision": collision_sound
-    }
-
-def load_image():
-    background = pygame.image.load("image/game_background.jfif")
-    jet = pygame.image.load("image/jet.png").convert()
-    missile = pygame.image.load("image/missile.png").convert()
-    cloud = pygame.image.load("image/cloud.png").convert()
-    return {
-        "jet": jet,
-        "missile": missile,
-        "cloud": cloud,
-        "background": background
-    }
 
 def test_load_Sound():
     try:
@@ -56,12 +33,16 @@ def test_load_image():
     except Exception as e:
         print("load_image() raised an exception:", e)
 
+def test_game_events():
+    pass
+
 def main():
     pygame.mixer.init()
     pygame.display.init()
     
     test_load_Sound()
     test_load_image()
+    test_game_events()
     
     pygame.mixer.quit()
     pygame.display.quit()

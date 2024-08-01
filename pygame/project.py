@@ -2,16 +2,20 @@
 import random
 import pygame
 
-
 # Setup for sounds, defaults are good
 pygame.mixer.init()
 
 # Initialize pygame
 pygame.init()
 
-# Load all our sound files
-# Sound sources: Jon Fincher
+# Load all our sound files Sound sources: Jon Fincher
 def load_Sound():
+    # Load and play our background music
+    # Sound source: http://ccmixter.org/files/Apoxode/59262
+    # License: https://creativecommons.org/licenses/by/3.0/
+    pygame.mixer.music.load("melody/Apoxode_-_Electric_1.mp3")
+    pygame.mixer.music.play(loops=-1)
+
     move_up_sound = pygame.mixer.Sound("melody/Rising_putter.ogg")
     move_down_sound = pygame.mixer.Sound("melody/Falling_putter.ogg")
     collision_sound = pygame.mixer.Sound("melody/Collision.ogg")
@@ -22,12 +26,8 @@ def load_Sound():
         "move_down": move_down_sound,
         "collision": collision_sound
     }
-# Define constants for the screen width and height
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-# define
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+#load sprites
 def load_image():
     background = pygame.image.load("image/game_background.jfif")
     jet = pygame.image.load("image/jet.png").convert()
@@ -40,6 +40,36 @@ def load_image():
         "background":background
     }
 
+# game events
+def game_events(player, enemies, clouds, all_sprites, sprite, sounds):
+    running = True
+    for event in pygame.event.get():
+        if event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                running = False
+
+        elif event.type == QUIT:
+            running = False
+
+        elif event.type == ADDENEMY:
+            new_enemy = Enemy()
+            enemies.add(new_enemy)
+            all_sprites.add(new_enemy)
+
+        elif event.type == ADDCLOUD:
+            new_cloud = Cloud()
+            clouds.add(new_cloud)
+            all_sprites.add(new_cloud)
+
+    return running
+
+
+# Define constants for the screen width and height
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# load sprites into a dictionary
 sprite = load_image()
 # Load sounds into a dictionary
 sounds = load_Sound()
@@ -61,7 +91,6 @@ from pygame.locals import (
     RLEACCEL,
 )
 
-# Creating object classes
 # Define the Player object extending pygame.sprite.Sprite
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -138,7 +167,6 @@ class Cloud(pygame.sprite.Sprite):
             self.kill()
 
 
-
 # Setup the clock for a decent framerate
 clock = pygame.time.Clock()
 
@@ -163,50 +191,15 @@ clouds = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
-# Load and play our background music
-# Sound source: http://ccmixter.org/files/Apoxode/59262
-# License: https://creativecommons.org/licenses/by/3.0/
-pygame.mixer.music.load("melody/Apoxode_-_Electric_1.mp3")
-pygame.mixer.music.play(loops=-1)
-
-
-
 # Variable to keep our main loop running
 running = True
 x = 0
+bg_speed = 5
 # Our main loop
 while running:
-    # Look at every event in the queue
-    x-=1
-    for event in pygame.event.get():
-        # Did the user hit a key?
-        if event.type == KEYDOWN:
-            # Was it the Escape key? If so, stop the loop
-            if event.key == K_ESCAPE:
-                running = False
-            elif event.key == K_RIGHT:
-                x -= 1
-                
-        # Did the user click the window close button? If so, stop the loop
-        elif event.type == QUIT:
-            running = False
-
-        # Should we add a new enemy?
-        elif event.type == ADDENEMY:
-            # Create the new enemy, and add it to our sprite groups
-            new_enemy = Enemy()
-            enemies.add(new_enemy)
-            all_sprites.add(new_enemy)
-
-        # Should we add a new cloud?
-        elif event.type == ADDCLOUD:
-            
-            # Create the new cloud, and add it to our sprite groups
-            new_cloud = Cloud()
-            clouds.add(new_cloud)
-            all_sprites.add(new_cloud)
-        
-
+    # Look at every event in the queue check if user presses quit or esc
+    running = game_events(player, enemies, clouds, all_sprites, sprite, sounds)
+    
     # Get the set of keys pressed and check for user input
     pressed_keys = pygame.key.get_pressed()
     player.update(pressed_keys)
@@ -215,16 +208,14 @@ while running:
     enemies.update()
     clouds.update()
 
-    # Fill the screen with sky blue
-    # screen.fill((135, 206, 250))
-    
+    # Background movement
     screen.blit(sprite["background"], (x, 0))
-    screen.blit(sprite["background"], (SCREEN_WIDTH+x, 0))
-    if (x==-SCREEN_WIDTH):
-        x = 0
-
-
+    screen.blit(sprite["background"], (SCREEN_WIDTH + x, 0))
     
+    # Move the background to the left
+    x -= bg_speed
+    if x <= -SCREEN_WIDTH:
+        x = 0
 
     # Draw all our sprites
     for entity in all_sprites:
@@ -247,6 +238,7 @@ while running:
     pygame.display.update()
     # Ensure we maintain a 30 frames per second rate
     clock.tick(30)
+
 
 # At this point, we're done, so we can stop and quit the mixer
 pygame.mixer.music.stop()
