@@ -2,7 +2,40 @@
 # Import random for random numbers
 import random
 import pygame
-bg_image = pygame.image.load("image/game_background.jfif")
+# Load all our sound files
+# Sound sources: Jon Fincher
+def load_Sound():
+    move_up_sound = pygame.mixer.Sound("melody/Rising_putter.ogg")
+    move_down_sound = pygame.mixer.Sound("melody/Falling_putter.ogg")
+    collision_sound = pygame.mixer.Sound("melody/Collision.ogg")
+    
+    # Return as a dictionary
+    return {
+        "move_up": move_up_sound,
+        "move_down": move_down_sound,
+        "collision": collision_sound
+    }
+
+def load_image():
+    background = pygame.image.load("image/game_background.jfif")
+    jet = pygame.image.load("image/jet.png").convert()
+    missile = pygame.image.load("image/missile.png").convert()
+    cloud = pygame.image.load("image/cloud.png").convert()
+    return {
+        "jet": jet,
+        "missile": missile,
+        "cloud": cloud,
+        "background":background
+    }
+
+sprite = load_image()
+# Load sounds into a dictionary
+sounds = load_Sound()
+
+# Access sounds from the dictionary and set the base volume for all
+sounds["move_up"].set_volume(0.5)
+sounds["move_down"].set_volume(0.5)
+sounds["collision"].set_volume(0.5)
 
 # Import pygame.locals for easier access to key coordinates
 # Updated to conform to flake8 and black standards
@@ -28,7 +61,7 @@ SCREEN_HEIGHT = 600
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.image.load("image/jet.png").convert()
+        self.surf = sprite["jet"]
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.surf.get_rect()
 
@@ -36,10 +69,10 @@ class Player(pygame.sprite.Sprite):
     def update(self, pressed_keys):
         if pressed_keys[K_UP]:
             self.rect.move_ip(0, -5)
-            move_up_sound.play()
+            sounds["move_up"].play()
         if pressed_keys[K_DOWN]:
             self.rect.move_ip(0, 5)
-            move_down_sound.play()
+            sounds["move_down"].play()
         if pressed_keys[K_LEFT]:
             self.rect.move_ip(-5, 0)
         if pressed_keys[K_RIGHT]:
@@ -61,7 +94,7 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
-        self.surf = pygame.image.load("image/missile.png").convert()
+        self.surf = sprite["missile"]
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         # The starting position is randomly generated, as is the speed
         self.rect = self.surf.get_rect(
@@ -85,7 +118,7 @@ class Enemy(pygame.sprite.Sprite):
 class Cloud(pygame.sprite.Sprite):
     def __init__(self):
         super(Cloud, self).__init__()
-        self.surf = pygame.image.load("image/cloud.png").convert()
+        self.surf = sprite["cloud"]
         self.surf.set_colorkey((0, 0, 0), RLEACCEL)
         # The starting position is randomly generated
         self.rect = self.surf.get_rect(
@@ -140,16 +173,7 @@ all_sprites.add(player)
 pygame.mixer.music.load("melody/Apoxode_-_Electric_1.mp3")
 pygame.mixer.music.play(loops=-1)
 
-# Load all our sound files
-# Sound sources: Jon Fincher
-move_up_sound = pygame.mixer.Sound("melody/Rising_putter.ogg")
-move_down_sound = pygame.mixer.Sound("melody/Falling_putter.ogg")
-collision_sound = pygame.mixer.Sound("melody/Collision.ogg")
 
-# Set the base volume for all sounds
-move_up_sound.set_volume(0.5)
-move_down_sound.set_volume(0.5)
-collision_sound.set_volume(0.5)
 
 # Variable to keep our main loop running
 running = True
@@ -204,9 +228,9 @@ while running:
         player.kill()
 
         # Stop any moving sounds and play the collision sound
-        move_up_sound.stop()
-        move_down_sound.stop()
-        collision_sound.play()
+        sounds["move_up"].stop()
+        sounds["move_down"].stop()
+        sounds["collision"].play()
 
         # Stop the loop
         running = False
