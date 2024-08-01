@@ -1,7 +1,14 @@
-# Import the pygame module
-# Import random for random numbers
+# Import the pygame module, random for random numbers
 import random
 import pygame
+
+
+# Setup for sounds, defaults are good
+pygame.mixer.init()
+
+# Initialize pygame
+pygame.init()
+
 # Load all our sound files
 # Sound sources: Jon Fincher
 def load_Sound():
@@ -15,6 +22,11 @@ def load_Sound():
         "move_down": move_down_sound,
         "collision": collision_sound
     }
+# Define constants for the screen width and height
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+# define
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 def load_image():
     background = pygame.image.load("image/game_background.jfif")
@@ -37,9 +49,7 @@ sounds["move_up"].set_volume(0.5)
 sounds["move_down"].set_volume(0.5)
 sounds["collision"].set_volume(0.5)
 
-# Import pygame.locals for easier access to key coordinates
-# Updated to conform to flake8 and black standards
-# from pygame.locals import *
+# from pygame.locals import Trigger(key)
 from pygame.locals import (
     K_DOWN,
     K_ESCAPE,
@@ -51,13 +61,8 @@ from pygame.locals import (
     RLEACCEL,
 )
 
-# Define constants for the screen width and height
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
-
+# Creating object classes
 # Define the Player object extending pygame.sprite.Sprite
-# Instead of a surface, we use an image for a better looking sprite
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
@@ -88,8 +93,6 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
 
-
-# Define the enemy object extending pygame.sprite.Sprite
 # Instead of a surface, we use an image for a better looking sprite
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -113,7 +116,6 @@ class Enemy(pygame.sprite.Sprite):
             self.kill()
 
 
-# Define the cloud object extending pygame.sprite.Sprite
 # Use an image for a better looking sprite
 class Cloud(pygame.sprite.Sprite):
     def __init__(self):
@@ -136,17 +138,11 @@ class Cloud(pygame.sprite.Sprite):
             self.kill()
 
 
-# Setup for sounds, defaults are good
-pygame.mixer.init()
-
-# Initialize pygame
-pygame.init()
 
 # Setup the clock for a decent framerate
 clock = pygame.time.Clock()
 
 # Create the screen object
-# The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Create custom events for adding a new enemy and cloud
@@ -177,16 +173,19 @@ pygame.mixer.music.play(loops=-1)
 
 # Variable to keep our main loop running
 running = True
-
+x = 0
 # Our main loop
 while running:
     # Look at every event in the queue
+    x-=1
     for event in pygame.event.get():
         # Did the user hit a key?
         if event.type == KEYDOWN:
             # Was it the Escape key? If so, stop the loop
             if event.key == K_ESCAPE:
                 running = False
+            elif event.key == K_RIGHT:
+                x -= 1
 
         # Did the user click the window close button? If so, stop the loop
         elif event.type == QUIT:
@@ -206,6 +205,7 @@ while running:
             new_cloud = Cloud()
             clouds.add(new_cloud)
             all_sprites.add(new_cloud)
+        
 
     # Get the set of keys pressed and check for user input
     pressed_keys = pygame.key.get_pressed()
@@ -216,7 +216,10 @@ while running:
     clouds.update()
 
     # Fill the screen with sky blue
-    screen.fill((135, 206, 250))
+    # screen.fill((135, 206, 250))
+    
+    screen.blit(sprite["background"], (x, 0))
+    
 
     # Draw all our sprites
     for entity in all_sprites:
@@ -235,9 +238,8 @@ while running:
         # Stop the loop
         running = False
 
-    # Flip everything to the display
-    pygame.display.flip()
-
+    # Updare everything to the display
+    pygame.display.update()
     # Ensure we maintain a 30 frames per second rate
     clock.tick(30)
 
