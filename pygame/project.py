@@ -2,11 +2,8 @@
 import random
 import pygame
 
-# Setup for sounds, defaults are good
-pygame.mixer.init()
+coin_count = 0 #coins
 
-# Initialize pygame
-pygame.init()
 
 # Load all our sound files Sound sources: Jon Fincher
 def load_Sound():
@@ -19,12 +16,15 @@ def load_Sound():
     move_up_sound = pygame.mixer.Sound("melody/Rising_putter.ogg")
     move_down_sound = pygame.mixer.Sound("melody/Falling_putter.ogg")
     collision_sound = pygame.mixer.Sound("melody/Collision.ogg")
+    coin_collect_sound = pygame.mixer.Sound("melody/coin_sound.mp3")
+
     
     # Return as a dictionary
     return {
         "move_up": move_up_sound,
         "move_down": move_down_sound,
-        "collision": collision_sound
+        "collision": collision_sound,
+        "collect": coin_collect_sound,
     }
 
 #load sprites
@@ -34,12 +34,14 @@ def load_image():
     missile = pygame.image.load("image/missile.png").convert()
     cloud = pygame.image.load("image/cloud.png").convert()
     coin = pygame.image.load("image/coin.png").convert()
+    heart = pygame.image.load("image/heart.png").convert()
     return {
         "jet": jet,
         "missile": missile,
         "cloud": cloud,
         "background": background,
         "coin": coin,
+        "heart": heart,
     }
 
 # game events
@@ -70,7 +72,6 @@ def game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins):
 
     return running
 
-coin_count = 0 #coins
 # Define constants for the screen width and height
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -85,6 +86,8 @@ sounds = load_Sound()
 sounds["move_up"].set_volume(0.5)
 sounds["move_down"].set_volume(0.5)
 sounds["collision"].set_volume(0.5)
+sounds["collect"].set_volume(0.8)
+
 
 # from pygame.locals import Trigger(key)
 from pygame.locals import (
@@ -251,6 +254,8 @@ while running:
     screen.blit(sprite["background"], (x, 0))
     screen.blit(sprite["background"], (SCREEN_WIDTH + x, 0))
     screen.blit(text_surface, text_rect)
+    for i in range(heart):
+        screen.blit(sprite["heart"],(i*40,3))
     
     # Move the background to the left
     x -= bg_speed
@@ -261,31 +266,42 @@ while running:
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
 
-    # Check if any enemies have collided with the player
-    if pygame.sprite.spritecollideany(player, enemies):
-        # If so, remove the player
-        player.kill()
+    # Check if any enemies have collided with the player remove enemy 
+    if enemy := pygame.sprite.spritecollideany(player, enemies):
         heart-=1
+        enemy.kill()
 
         # Stop any moving sounds and play the collision sound
-        sounds["move_up"].stop()
-        sounds["move_down"].stop()
         sounds["collision"].play()    
-        # Stop the loop
-        running = False
+
         
     if coin := pygame.sprite.spritecollideany(player, coins):
+        sounds["collect"].play()
         coin.kill()
         coin_count+=1
 
     if heart == 0:
-        return False
+        player.kill()
+        # Stop any moving sounds and play the collision sound
+        sounds["move_up"].stop()
+        sounds["move_down"].stop()
+        sounds["collision"].play()
+        # stop the game
+        running = False
+
     # Updare everything to the display
     pygame.display.update()
     # Ensure we maintain a 30 frames per second rate
     clock.tick(30)
 
 
-# At this point, we're done, so we can stop and quit the mixer
-pygame.mixer.music.stop()
-pygame.mixer.quit()
+def main():
+    # Initialize pygame and Setup for sounds, defaults are good 
+    pygame.mixer.init()
+    pygame.init()
+
+
+
+    # At this point, we're done, so we can stop and quit the mixer
+    pygame.mixer.music.stop()
+    pygame.mixer.quit()

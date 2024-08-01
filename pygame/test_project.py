@@ -1,51 +1,68 @@
+import pygame 
 from project import load_Sound, load_image, game_events
-import pygame
+import unittest
+from unittest.mock import MagicMock, patch
 
-def test_load_Sound():
-    try:
-        sounds = load_Sound()
-        assert "move_up" in sounds
-        assert "move_down" in sounds
-        assert "collision" in sounds
-        assert isinstance(sounds["move_up"], pygame.mixer.Sound)
-        assert isinstance(sounds["move_down"], pygame.mixer.Sound)
-        assert isinstance(sounds["collision"], pygame.mixer.Sound)
-        print("load_Sound() passed.")
-    except AssertionError as e:
-        print("load_Sound() failed:", e)
-    except Exception as e:
-        print("load_Sound() raised an exception:", e)
+class TestGameFunctions(unittest.TestCase):
+    def setUp(self):
+        pygame.init()
+        pygame.mixer.init()
 
-def test_load_image():
-    try:
-        images = load_image()
-        assert "jet" in images
-        assert "missile" in images
-        assert "cloud" in images
-        assert "background" in images
-        assert isinstance(images["jet"], pygame.Surface)
-        assert isinstance(images["missile"], pygame.Surface)
-        assert isinstance(images["cloud"], pygame.Surface)
-        assert isinstance(images["background"], pygame.Surface)
-        print("load_image() passed.")
-    except AssertionError as e:
-        print("load_image() failed:", e)
-    except Exception as e:
-        print("load_image() raised an exception:", e)
+    def tearDown(self):
+        pygame.mixer.quit()
+        pygame.quit()
 
-def test_game_events():
-    pass
+    def test_load_Sound(self):
+        try:
+            sounds = load_Sound()
+            assert isinstance(sounds["move_up"], pygame.mixer.Sound)
+            assert isinstance(sounds["move_down"], pygame.mixer.Sound)
+            assert isinstance(sounds["collision"], pygame.mixer.Sound)
+            assert isinstance(sounds["collect"], pygame.mixer.Sound)
+            print("load_Sound() passed.")
+        except Exception as e:
+            print(f"load_Sound() raised an exception: {e}")
 
-def main():
-    pygame.mixer.init()
-    pygame.display.init()
-    
-    test_load_Sound()
-    test_load_image()
-    test_game_events()
-    
-    pygame.mixer.quit()
-    pygame.display.quit()
+    def test_load_image(self):
+        try:
+            images = load_image()
+            assert isinstance(images["jet"], pygame.Surface)
+            assert isinstance(images["missile"], pygame.Surface)
+            assert isinstance(images["cloud"], pygame.Surface)
+            assert isinstance(images["background"], pygame.Surface)
+            assert isinstance(images["coin"], pygame.Surface)
+            assert isinstance(images["heart"], pygame.Surface)
+            print("load_image() passed.")
+        except Exception as e:
+            print(f"load_image() raised an exception: {e}")
+
+    @patch('pygame.event.get')
+    def test_game_events(self, mock_get):
+        # Define custom event types for testing
+        ADDENEMY = pygame.USEREVENT + 1
+        ADDCLOUD = pygame.USEREVENT + 2
+        ADDCOIN = pygame.USEREVENT + 3
+        mock_get.return_value = [
+            pygame.event.Event(ADDENEMY),
+            pygame.event.Event(ADDCLOUD),
+            pygame.event.Event(ADDCOIN)
+        ]
+
+        player = MagicMock()
+        enemies = pygame.sprite.Group()
+        clouds = pygame.sprite.Group()
+        coins = pygame.sprite.Group()
+        all_sprites = pygame.sprite.Group()
+
+        running = game_events(player, enemies, clouds, all_sprites, None, None, coins)
+
+        assert running == True
+        assert len(enemies) == 1
+        assert len(clouds) == 1
+        assert len(coins) == 1
+        assert len(all_sprites) == 3
+
+        print("game_events() passed.")
 
 if __name__ == "__main__":
-    main()
+    unittest.main()
