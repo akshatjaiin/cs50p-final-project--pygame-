@@ -6,17 +6,22 @@ pygame.mixer.init()
 pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+# Define constants for screen width, height, and custom events
+ADDENEMY = pygame.USEREVENT + 1
+ADDCLOUD = pygame.USEREVENT + 2
+ADDCOIN = pygame.USEREVENT + 3
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Player Class
 class Player(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, sprite):
         super(Player, self).__init__()
         self.surf = sprite["jet"]
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.surf.get_rect()
 
     # Move the sprite based on keypresses
-    def update(self, pressed_keys):
+    def update(self, pressed_keys, sounds):
         if pressed_keys[K_UP]:
             self.rect.move_ip(0, -5)
             sounds["move_up"].play()
@@ -40,7 +45,7 @@ class Player(pygame.sprite.Sprite):
 
 # Enemy Class
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, sprite):
         super(Enemy, self).__init__()
         self.surf = sprite["missile"]
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
@@ -62,7 +67,7 @@ class Enemy(pygame.sprite.Sprite):
 
 # Coin Class
 class Coin(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, sprite):
         super(Coin, self).__init__()
         self.surf = sprite["coin"]
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
@@ -84,7 +89,7 @@ class Coin(pygame.sprite.Sprite):
 
 # Cloud Class
 class Cloud(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, sprite):
         super(Cloud, self).__init__()
         self.surf = sprite["cloud"]
         self.surf.set_colorkey((0, 0, 0), RLEACCEL)
@@ -109,6 +114,7 @@ def load_Sound():
     # Load and play our background music
     # Sound source: http://ccmixter.org/files/Apoxode/59262
     # License: https://creativecommons.org/licenses/by/3.0/
+    print("sound loaded")
     pygame.mixer.music.load("melody/Apoxode_-_Electric_1.mp3")
     pygame.mixer.music.play(loops=-1)
 
@@ -128,7 +134,7 @@ def load_Sound():
 
 #load sprites
 def load_image():
-    pygame.init()
+    print("image loaded")
     background = pygame.image.load("image/game_background.jfif")
     jet = pygame.image.load("image/jet.png").convert()
     missile = pygame.image.load("image/missile.png").convert()
@@ -146,6 +152,7 @@ def load_image():
 
 # game events
 def game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins):
+    print("event triggered")
     running = True
     for event in pygame.event.get():
         if event.type == KEYDOWN:
@@ -156,29 +163,31 @@ def game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins):
             running = False
 
         elif event.type == ADDENEMY:
-            new_enemy = Enemy()
+            new_enemy = Enemy(sprite)
             enemies.add(new_enemy)
             all_sprites.add(new_enemy)
 
         elif event.type == ADDCLOUD:
-            new_cloud = Cloud()
+            new_cloud = Cloud(sprite)
             clouds.add(new_cloud)
             all_sprites.add(new_cloud)
             
         elif event.type == ADDCOIN:
-            new_coin = Coin()
+            new_coin = Coin(sprite)
             coins.add(new_coin)
             all_sprites.add(new_coin)
 
     return running
 
-def update_sprites(player, enemies, clouds, coins):
-    player.update(pygame.key.get_pressed())
+def update_sprites(player, enemies, clouds, coins, sounds):
+    print("update.x")
+    player.update(pygame.key.get_pressed(), sounds)
     enemies.update()
     clouds.update()
     coins.update()
 
 def draw_background(screen, sprite, x, bg_speed):
+    print("moving background")
     screen.blit(sprite["background"], (x, 0))
     screen.blit(sprite["background"], (SCREEN_WIDTH + x, 0))
     x -= bg_speed
@@ -187,11 +196,13 @@ def draw_background(screen, sprite, x, bg_speed):
     return x
 
 def draw_sprites(screen, all_sprites):
+    print("drawing sprite")
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
 
 def check_collisions(player, enemies, coins, sounds, hearts):
     if enemy := pygame.sprite.spritecollideany(player, enemies):
+        print("heart loss")
         hearts -= 1
         enemy.kill()
         sounds["collision"].play()
@@ -202,6 +213,7 @@ def check_collisions(player, enemies, coins, sounds, hearts):
     return 0, hearts
 
 def update_score_display(screen, coin_count, hearts, sprite):
+    print(f"score {hearts}")
     font = pygame.font.SysFont('Arial', 36)
     text_surface = font.render(f'Score: {coin_count}', True, (255, 255, 255))  # White text
     text_rect = text_surface.get_rect(topright=(SCREEN_WIDTH - 10, 10))
@@ -210,6 +222,7 @@ def update_score_display(screen, coin_count, hearts, sprite):
         screen.blit(sprite["heart"], (i * 40, 3))
 
 def end_game(player, sounds):
+    print("game over")
     player.kill()
     sounds["move_up"].stop()
     sounds["move_down"].stop()
@@ -228,7 +241,7 @@ def game_loop(player, enemies, clouds, coins, all_sprites, sprite, sounds, scree
     while running:
         print("loop started")
         running = game_events(player, enemies, clouds, all_sprites, sprite, sounds, coins)
-        update_sprites(player, enemies, clouds, coins)
+        update_sprites(player, enemies, clouds, coins, sounds)
         x = draw_background(screen, sprite, x, bg_speed)
         draw_sprites(screen, all_sprites)
         collected, hearts = check_collisions(player, enemies, coins, sounds, hearts)
@@ -258,11 +271,6 @@ from pygame.locals import (
 
 
 def main():
-    # Define constants for screen width, height, and custom events
-    ADDENEMY = pygame.USEREVENT + 1
-    ADDCLOUD = pygame.USEREVENT + 2
-    ADDCOIN = pygame.USEREVENT + 3
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
     sprite = load_image()
     sounds = load_Sound()
@@ -274,7 +282,7 @@ def main():
     sounds["collect"].set_volume(0.8)
 
     # Create player and sprite groups
-    player = Player(sprite, sounds)
+    player = Player(sprite)
     enemies = pygame.sprite.Group()
     clouds = pygame.sprite.Group()
     coins = pygame.sprite.Group()
@@ -298,30 +306,3 @@ def main():
     pygame.quit()
 
 main()
-# # Setup the clock for a decent framerate
-# clock = pygame.time.Clock()
-
-# # Create the screen object
-# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-# # Create custom events for adding a new enemy and cloud
-# ADDENEMY = pygame.USEREVENT + 1
-# pygame.time.set_timer(ADDENEMY, 250)
-# ADDCLOUD = pygame.USEREVENT + 2
-# pygame.time.set_timer(ADDCLOUD, 1000)
-# ADDCOIN = pygame.USEREVENT + 3
-# pygame.time.set_timer(ADDCOIN, 600)
-
-# # Create our 'player'
-# player = Player()
-
-# # Create groups to hold enemy sprites, cloud sprites, and all sprites
-# # - enemies is used for collision detection and position updates
-# # - clouds is used for position updates
-# # - all_sprites isused for rendering
-# enemies = pygame.sprite.Group()
-# clouds = pygame.sprite.Group()
-# coins = pygame.sprite.Group()
-# all_sprites = pygame.sprite.Group()
-# all_sprites.add(player, coins)
-
