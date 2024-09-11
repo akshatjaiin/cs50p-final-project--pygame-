@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/9799e941-179f-4ab6-bbd2-f8cb91faa264)
+
 # Jet Shoter
 #### Video Demo:  <https://www.youtube.com/watch?v=ojbPM6gELck>
 #### Description: game using pygame
